@@ -30,6 +30,15 @@ function initPresets() {
 }
 
 function applyPreset(p) {
+    // Remove active class from all preset buttons
+    document.querySelectorAll('.preset-btn').forEach(btn => btn.classList.remove('active'));
+    
+    // Add active class to the clicked button (finding by name)
+    const buttons = document.querySelectorAll('.preset-btn');
+    buttons.forEach(btn => {
+        if (btn.innerText === p.name) btn.classList.add('active');
+    });
+
     document.getElementById('scenario-warehouse').value = p.warehouse;
     document.getElementById('scenario-inventory').value = p.inventory;
     document.getElementById('scenario-carrier').value = p.carrier;
