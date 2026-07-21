@@ -10,7 +10,7 @@ A lightweight, standalone development tool for interacting with the Estimated De
 - **History**: Calculation log persisted in local storage.
 
 ## Preview
-![EDD Playground Preview](vscode-chat-response-resource://7673636f64652d636861742d73657373696f6e3a2f2f6c6f63616c2f597a63314f5745324d5459745a6d566a5a693030596a457a4c54686d596a5974593251784d4455344e325a6d59574534/tool/call_MHxZVXNnaVRpUkRBeW93ZElUaDc/0/file.jpe)
+![EDD Playground Preview](playground-preview.png)
 
 ## Setup & Run
 1. Install dependencies: `npm install`
