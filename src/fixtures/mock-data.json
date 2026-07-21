@@ -1,0 +1,50 @@
+{
+  "warehouses": [
+    {
+      "id": "WH-A-TX",
+      "name": "Dallas, TX",
+      "scenarios": {
+        "normal": { "queue_depth": 45, "avg_wait_minutes": 30, "status": "OPERATIONAL" },
+        "busy": { "queue_depth": 200, "avg_wait_minutes": 120, "status": "OPERATIONAL" },
+        "degraded": { "queue_depth": 350, "avg_wait_minutes": 240, "status": "DEGRADED" },
+        "down": { "queue_depth": 0, "avg_wait_minutes": 0, "status": "DOWN" }
+      }
+    },
+    {
+      "id": "WH-B-CA",
+      "name": "Los Angeles, CA",
+      "scenarios": {
+        "normal": { "queue_depth": 30, "avg_wait_minutes": 20, "status": "OPERATIONAL" },
+        "busy": { "queue_depth": 150, "avg_wait_minutes": 90, "status": "OPERATIONAL" },
+        "degraded": { "queue_depth": 280, "avg_wait_minutes": 180, "status": "DEGRADED" },
+        "down": { "queue_depth": 0, "avg_wait_minutes": 0, "status": "DOWN" }
+      }
+    },
+    {
+      "id": "WH-C-NY",
+      "name": "New York, NY",
+      "scenarios": {
+        "normal": { "queue_depth": 60, "avg_wait_minutes": 40, "status": "OPERATIONAL" },
+        "busy": { "queue_depth": 250, "avg_wait_minutes": 150, "status": "OPERATIONAL" },
+        "degraded": { "queue_depth": 400, "avg_wait_minutes": 300, "status": "DEGRADED" },
+        "down": { "queue_depth": 0, "avg_wait_minutes": 0, "status": "DOWN" }
+      }
+    }
+  ],
+  "inventory_scenarios": {
+    "in_stock": { "available": 500, "reserved": 50, "status": "IN_STOCK" },
+    "low_stock": { "available": 5, "reserved": 45, "status": "LOW_STOCK" },
+    "out_of_stock": { "available": 0, "reserved": 0, "status": "OUT_OF_STOCK" },
+    "backorder": { "available": 0, "reserved": 0, "backorder": 200, "status": "BACKORDER" }
+  },
+  "carrier_scenarios": {
+    "fast": { "transit_days_p95": 2.0, "transit_days_p99": 3.0, "weekend_delivery": true },
+    "standard": { "transit_days_p95": 4.0, "transit_days_p99": 6.0, "weekend_delivery": false },
+    "slow": { "transit_days_p95": 7.0, "transit_days_p99": 10.0, "weekend_delivery": false }
+  },
+  "historical_scenarios": {
+    "reliable": { "p95_delivery_days": 4.0, "on_time_rate": 0.95, "variance": 0.5 },
+    "average": { "p95_delivery_days": 5.5, "on_time_rate": 0.85, "variance": 1.2 },
+    "unreliable": { "p95_delivery_days": 8.0, "on_time_rate": 0.65, "variance": 2.5 }
+  }
+}

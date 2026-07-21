@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDD Engine Playground</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>EDD Engine Playground</h1>
+            <div class="mode-selector">
+                <label><input type="radio" name="mode" value="mock" checked> Mock Mode</label>
+                <label><input type="radio" name="mode" value="live"> Live API</label>
+                <input type="text" id="api-base-url" value="http://localhost:8081" placeholder="API Base URL">
+            </div>
+        </header>
+
+        <section class="presets">
+            <h3>Scenario Presets</h3>
+            <div id="preset-buttons">
+                <!-- Buttons injected by JS -->
+            </div>
+        </section>
+
+        <main class="playground-grid">
+            <section class="request-form">
+                <h3>Order Input</h3>
+                <form id="edd-form">
+                    <div class="form-group">
+                        <label>Warehouse</label>
+                        <select id="warehouse-id" required>
+                            <option value="WH-A-TX">WH-A-TX (Dallas)</option>
+                            <option value="WH-B-CA">WH-B-CA (Los Angeles)</option>
+                            <option value="WH-C-NY">WH-C-NY (New York)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Service Level</label>
+                        <select id="service-level">
+                            <option value="ground">Ground</option>
+                            <option value="express">Express</option>
+                            <option value="overnight">Overnight</option>
+                        </select>
+                    </div>
+
+                    <div id="mock-scenarios" class="mock-only">
+                        <h4>Mock Scenarios</h4>
+                        <div class="form-group">
+                            <label>Warehouse State</label>
+                            <select id="scenario-warehouse">
+                                <option value="normal">Normal</option>
+                                <option value="busy">Busy</option>
+                                <option value="degraded">Degraded</option>
+                                <option value="down">Warehouse Down</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Inventory</label>
+                            <select id="scenario-inventory">
+                                <option value="in_stock">In Stock</option>
+                                <option value="low_stock">Low Stock</option>
+                                <option value="out_of_stock">Out of Stock</option>
+                                <option value="backorder">Backorder</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Carrier</label>
+                            <select id="scenario-carrier">
+                                <option value="standard">Standard</option>
+                                <option value="fast">Fast</option>
+                                <option value="slow">Slow</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Historical</label>
+                            <select id="scenario-historical">
+                                <option value="reliable">Reliable</option>
+                                <option value="average">Average</option>
+                                <option value="unreliable">Unreliable</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" id="calculate-btn">Calculate EDD</button>
+                    <div id="timer" class="timer"></div>
+                </form>
+            </section>
+
+            <section class="results-panel">
+                <div id="results-content" class="hidden">
+                    <div class="edd-display">
+                        <span class="label">Estimated Delivery Date</span>
+                        <h2 id="edd-date">--</h2>
+                    </div>
+
+                    <div class="confidence-container">
+                        <label>Confidence Score</label>
+                        <div class="progress-bar">
+                            <div id="confidence-bar" class="progress"></div>
+                        </div>
+                        <span id="confidence-value">0%</span>
+                    </div>
+
+                    <table class="breakdown-table">
+                        <thead>
+                            <tr><th>Segment</th><th>Days</th></tr>
+                        </thead>
+                        <tbody id="breakdown-body"></tbody>
+                    </table>
+
+                    <div id="warnings" class="warnings-list"></div>
+                    
+                    <button class="toggle-json" onclick="document.getElementById('raw-json').classList.toggle('hidden')">Show Raw JSON</button>
+                    <pre id="raw-json" class="hidden"></pre>
+                </div>
+                <div id="loading" class="hidden">Calculating...</div>
+                <div id="error" class="error-box hidden"></div>
+            </section>
+        </main>
+
+        <section class="history">
+            <h3>Recent Calculations</h3>
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>WH</th>
+                        <th>EDD</th>
+                        <th>Conf</th>
+                        <th>Lat</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
