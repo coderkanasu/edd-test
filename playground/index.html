@@ -37,13 +37,49 @@
                         </select>
                     </div>
 
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Customer Segment</label>
+                            <select id="customer-segment">
+                                <option value="standard">Standard</option>
+                                <option value="premium">Premium</option>
+                                <option value="enterprise">Enterprise</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Service Level</label>
+                            <select id="service-level">
+                                <option value="ground">Ground</option>
+                                <option value="express">Express</option>
+                                <option value="overnight">Overnight</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="form-group">
-                        <label>Service Level</label>
-                        <select id="service-level">
-                            <option value="ground">Ground</option>
-                            <option value="express">Express</option>
-                            <option value="overnight">Overnight</option>
-                        </select>
+                        <label>Shipping Address</label>
+                        <div class="address-grid">
+                            <input type="text" id="ship-city" placeholder="City" value="Seattle">
+                            <select id="ship-state">
+                                <option value="WA">WA</option>
+                                <option value="TX">TX</option>
+                                <option value="NY">NY</option>
+                                <option value="CA">CA</option>
+                            </select>
+                            <input type="text" id="ship-zip" placeholder="Zip" value="98101">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Items (SKU + Qty)</label>
+                        <div id="items-container">
+                            <div class="item-row">
+                                <input type="text" placeholder="SKU" class="item-sku" value="ITEM-001">
+                                <input type="number" placeholder="Qty" class="item-qty" value="1">
+                                <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-secondary" onclick="addItemRow()">+ Add Item</button>
                     </div>
 
                     <div id="mock-scenarios" class="mock-only">
@@ -92,9 +128,12 @@
             <section class="results-panel">
                 <div id="results-content" class="hidden">
                     <div class="edd-display">
+                        <div id="freshness-badge" class="badge">--</div>
                         <span class="label">Estimated Delivery Date</span>
                         <h2 id="edd-date">--</h2>
                     </div>
+
+                    <div id="warnings-container" class="warnings-list hidden"></div>
 
                     <div class="confidence-container">
                         <label>Confidence Score</label>

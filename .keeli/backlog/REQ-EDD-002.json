@@ -1,0 +1,9 @@
+{
+  "id": "REQ-EDD-002",
+  "title": "Implement parallel fetching layer with resilience mocks",
+  "description": "Create the data ingestion layer that simulates parallel HTTP calls to upstream services with timeout and retry logic.",
+  "status": "backlog",
+  "priority": "P0",
+  "tags": ["integration", "resilience"],
+  "created_at": "2026-07-21T00:00:00Z"
+}

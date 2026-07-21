@@ -1,0 +1,9 @@
+{
+  "id": "REQ-EDD-001",
+  "title": "Define core data contracts and schemas",
+  "description": "Establish the central calculation engine's input/output schemas, logic, and business rules as defined in the requirements.",
+  "status": "active",
+  "priority": "P0",
+  "tags": ["core", "schemas"],
+  "created_at": "2026-07-21T00:00:00Z"
+}

@@ -1,0 +1,9 @@
+{
+  "id": "REQ-EDD-004",
+  "title": "Implement API Gateway layer with Auth/Rate-limiting mocks",
+  "description": "Create the REST API endpoints with simulated request validation, API key auth, and rate limiting.",
+  "status": "backlog",
+  "priority": "P0",
+  "tags": ["api", "gateway"],
+  "created_at": "2026-07-21T00:00:00Z"
+}

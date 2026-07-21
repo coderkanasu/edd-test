@@ -1,7 +1,7 @@
 const PRESETS = [
     { name: "Happy Path", warehouse: "normal", inventory: "in_stock", carrier: "standard", historical: "reliable" },
     { name: "Busy Warehouse", warehouse: "busy", inventory: "in_stock", carrier: "standard", historical: "average" },
-    { name: "Low Stock", warehouse: "normal", inventory: "low_stock", carrier: "fast", historical: "reliable" },
+    { name: "Low Stock", warehouse: "normal", inventory: "low_stock", carrier: "standard", historical: "reliable" },
     { name: "Out of Stock", warehouse: "normal", inventory: "out_of_stock", carrier: "standard", historical: "average" },
     { name: "Slow Transit", warehouse: "normal", inventory: "in_stock", carrier: "slow", historical: "unreliable" },
     { name: "Warehouse Down", warehouse: "down", inventory: "in_stock", carrier: "standard", historical: "average" }
@@ -10,7 +10,8 @@ const PRESETS = [
 document.addEventListener('DOMContentLoaded', () => {
     initPresets();
     initHistory();
-    
+    // Auto-populate first preset
+    applyPreset(PRESETS[0]);
     document.getElementById('edd-form').addEventListener('submit', calculateEDD);
 });
 
@@ -35,6 +36,18 @@ function applyPreset(p) {
     document.getElementById('scenario-historical').value = p.historical;
 }
 
+function addItemRow() {
+    const container = document.getElementById('items-container');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.innerHTML = `
+        <input type="text" placeholder="SKU" class="item-sku">
+        <input type="number" placeholder="Qty" class="item-qty" value="1">
+        <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+    `;
+    container.appendChild(div);
+}
+
 async function calculateEDD(e) {
     e.preventDefault();
     
@@ -50,10 +63,23 @@ async function calculateEDD(e) {
     const baseUrl = document.getElementById('api-base-url').value;
     const isMock = document.querySelector('input[name="mode"]:checked').value === 'mock';
     
+    // Gather Items
+    const itemRows = document.querySelectorAll('.item-row');
+    const items = Array.from(itemRows).map(row => ({
+        sku: row.querySelector('.item-sku').value,
+        quantity: parseInt(row.querySelector('.item-qty').value)
+    })).filter(i => i.sku);
+
     const payload = {
         warehouseId: document.getElementById('warehouse-id').value,
         serviceLevel: document.getElementById('service-level').value,
-        items: [{ sku: "SKU-TEST-01", qty: 1 }],
+        customerSegment: document.getElementById('customer-segment').value,
+        shippingAddress: {
+            city: document.getElementById('ship-city').value,
+            state: document.getElementById('ship-state').value,
+            zip: document.getElementById('ship-zip').value
+        },
+        items: items,
         scenarios: {
             warehouse: document.getElementById('scenario-warehouse').value,
             inventory: document.getElementById('scenario-inventory').value,
@@ -65,7 +91,10 @@ async function calculateEDD(e) {
     try {
         const response = await fetch(`${baseUrl}/api/calculate-edd?mock=${isMock}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'x-api-key': 'EDD-TEST-KEY-2026'
+            },
             body: JSON.stringify(payload)
         });
 
@@ -74,9 +103,11 @@ async function calculateEDD(e) {
         
         if (response.ok) {
             renderResults(data, duration);
-            addToHistory(data, duration);
+            addToHistory(payload, data, duration);
         } else {
-            throw new Error(data.error || 'Request failed');
+            // Render partial results for errors if metadata exists (e.g. status code 422 with warnings)
+            renderResults(data, duration, true);
+            throw new Error(data.message || data.error || 'Request failed');
         }
     } catch (err) {
         errorBox.innerText = `Error: ${err.message}`;
@@ -86,18 +117,18 @@ async function calculateEDD(e) {
     }
 }
 
-function renderResults(data, duration) {
+function renderResults(data, duration, isError = false) {
     const results = document.getElementById('results-content');
     results.classList.remove('hidden');
     
-    document.getElementById('edd-date').innerText = data.edd || 'N/A';
+    document.getElementById('edd-date').innerText = data.edd || (isError ? 'ABORTED' : 'N/A');
     document.getElementById('timer').innerText = `Response time: ${duration}ms`;
     
     const confBar = document.getElementById('confidence-bar');
-    confBar.style.width = `${data.confidence}%`;
-    document.getElementById('confidence-value').innerText = `${data.confidence}%`;
-    
-    confBar.style.backgroundColor = data.confidence > 90 ? '#10b981' : (data.confidence > 70 ? '#f59e0b' : '#ef4444');
+    const score = data.confidence || 0;
+    confBar.style.width = `${score}%`;
+    document.getElementById('confidence-value').innerText = `${score}%`;
+    confBar.style.backgroundColor = score > 90 ? '#10b981' : (score > 70 ? '#f59e0b' : '#ef4444');
 
     const breakdownBody = document.getElementById('breakdown-body');
     breakdownBody.innerHTML = '';
@@ -108,25 +139,37 @@ function renderResults(data, duration) {
         });
     }
 
-    const warnings = document.getElementById('warnings');
-    warnings.innerHTML = '';
-    if (data.warnings) {
+    // Warnings
+    const warnContainer = document.getElementById('warnings-container');
+    warnContainer.innerHTML = '';
+    if (data.warnings && data.warnings.length > 0) {
+        warnContainer.classList.remove('hidden');
         data.warnings.forEach(w => {
-            warnings.innerHTML += `<div class="warning-item">${w}</div>`;
+            warnContainer.innerHTML += `<div class="warning-item">⚠️ ${w}</div>`;
         });
+    } else {
+        warnContainer.classList.add('hidden');
     }
+
+    // Freshness Badge
+    const badge = document.getElementById('freshness-badge');
+    const freshness = data.data_freshness || {};
+    badge.innerText = `Source: ${freshness.source || 'mock'} | ${freshness.timestamp ? new Date(freshness.timestamp).toLocaleTimeString() : '--'}`;
+    badge.className = `badge ${data.metadata?.cache_info?.wms ? 'badge-cached' : 'badge-fresh'}`;
 
     document.getElementById('raw-json').innerText = JSON.stringify(data, null, 2);
 }
 
-function addToHistory(data, duration) {
+function addToHistory(payload, data, duration) {
     const history = JSON.parse(localStorage.getItem('edd_history') || '[]');
     const item = {
+        id: Date.now(),
         time: new Date().toLocaleTimeString(),
-        wh: data.metadata?.warehouse_name || '?',
+        wh: payload.warehouseId,
         edd: data.edd || 'ERROR',
-        conf: data.confidence,
-        lat: duration
+        conf: data.confidence || 0,
+        lat: duration,
+        payload: payload // Store for re-run
     };
     
     history.unshift(item);
@@ -141,15 +184,54 @@ function renderHistory() {
     const tbody = document.querySelector('#history-table tbody');
     tbody.innerHTML = '';
     history.forEach(item => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${item.time}</td>
-                <td>${item.wh}</td>
-                <td>${item.edd}</td>
-                <td>${item.conf}%</td>
-                <td>${item.lat}ms</td>
-                <td><button onclick="alert('Re-run not implemented')">Re-run</button></td>
-            </tr>
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${item.time}</td>
+            <td>${item.wh}</td>
+            <td>${item.edd}</td>
+            <td>${item.conf}%</td>
+            <td>${item.lat}ms</td>
+            <td><button class="btn-small" onclick="rerunHistory(${item.id})">Re-run</button></td>
         `;
+        tbody.appendChild(tr);
     });
 }
+
+window.rerunHistory = function(id) {
+    const history = JSON.parse(localStorage.getItem('edd_history') || '[]');
+    const item = history.find(i => i.id === id);
+    if (!item) return;
+
+    // Apply payload to form
+    const p = item.payload;
+    document.getElementById('warehouse-id').value = p.warehouseId;
+    document.getElementById('service-level').value = p.serviceLevel;
+    document.getElementById('customer-segment').value = p.customerSegment || 'standard';
+    document.getElementById('ship-city').value = p.shippingAddress.city;
+    document.getElementById('ship-state').value = p.shippingAddress.state;
+    document.getElementById('ship-zip').value = p.shippingAddress.zip;
+    
+    if (p.scenarios) {
+        document.getElementById('scenario-warehouse').value = p.scenarios.warehouse;
+        document.getElementById('scenario-inventory').value = p.scenarios.inventory;
+        document.getElementById('scenario-carrier').value = p.scenarios.carrier;
+        document.getElementById('scenario-historical').value = p.scenarios.historical;
+    }
+
+    // Rebuild items
+    const container = document.getElementById('items-container');
+    container.innerHTML = '';
+    p.items.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'item-row';
+        div.innerHTML = `
+            <input type="text" placeholder="SKU" class="item-sku" value="${item.sku}">
+            <input type="number" placeholder="Qty" class="item-qty" value="${item.quantity}">
+            <button type="button" class="btn-remove" onclick="this.parentElement.remove()">×</button>
+        `;
+        container.appendChild(div);
+    });
+
+    // Trigger submit
+    document.getElementById('edd-form').dispatchEvent(new Event('submit'));
+};
